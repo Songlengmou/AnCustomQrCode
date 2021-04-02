@@ -24,10 +24,13 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.anningtex.ancustomqrcode.MyApp;
 import com.anningtex.ancustomqrcode.R;
+import com.anningtex.ancustomqrcode.bean.QrMangerBean;
 import com.anningtex.ancustomqrcode.camera.CameraManager;
 import com.anningtex.ancustomqrcode.decoding.CaptureActivityHandler;
 import com.anningtex.ancustomqrcode.decoding.InactivityTimer;
 import com.anningtex.ancustomqrcode.decoding.RGBLuminanceSource;
+import com.anningtex.ancustomqrcode.sql.QrMangerDatabase;
+import com.anningtex.ancustomqrcode.sql.dao.QrMangerDao;
 import com.anningtex.ancustomqrcode.utils.BitmapUtil;
 import com.anningtex.ancustomqrcode.utils.Constant;
 import com.anningtex.ancustomqrcode.utils.SavePicUtil;
@@ -48,6 +51,7 @@ import com.iflytek.cloud.SynthesizerListener;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Vector;
@@ -79,6 +83,8 @@ public class CaptureActivity extends AppCompatActivity implements SurfaceHolder.
     private int imgSum = 1;
     private List<String> imgs = new ArrayList<>();
 
+    private QrMangerDao qrMangerDao;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -100,6 +106,11 @@ public class CaptureActivity extends AppCompatActivity implements SurfaceHolder.
         tvContent = findViewById(R.id.tv_content);
         hasSurface = false;
         inactivityTimer = new InactivityTimer(this);
+        qrMangerDao = QrMangerDatabase.getDefault(getApplicationContext()).getQrMangerDao();
+        tvContent.setOnLongClickListener(view -> {
+            startActivity(new Intent(CaptureActivity.this, QrCodeMangerActivity.class));
+            return false;
+        });
     }
 
     private View.OnClickListener albumOnClick = view -> {
@@ -239,6 +250,10 @@ public class CaptureActivity extends AppCompatActivity implements SurfaceHolder.
             showTip(str);
             speekText(str);
             Log.e("666///", "SAVE_SUCCESS_PATH: " + MyApp.SAVE_SUCCESS_PATH);
+
+            //TODO 加入数据库并且上传    "01"代表工位的手机编号(每个工位)
+            QrMangerBean qrMangerBean = new QrMangerBean("01", MyApp.SAVE_SUCCESS_PATH, resultString, new Date());
+            qrMangerDao.insertQrMangerBean(qrMangerBean);
         }
         Log.e("666****", "qrCode: " + resultString + ".png");
     }
@@ -377,17 +392,14 @@ public class CaptureActivity extends AppCompatActivity implements SurfaceHolder.
 
         @Override
         public void onSpeakBegin() {
-            showTip(" 开始播放 ");
         }
 
         @Override
         public void onSpeakPaused() {
-            showTip(" 暂停播放 ");
         }
 
         @Override
         public void onSpeakResumed() {
-            showTip(" 继续播放 ");
         }
 
         @Override
@@ -403,7 +415,6 @@ public class CaptureActivity extends AppCompatActivity implements SurfaceHolder.
         @Override
         public void onCompleted(SpeechError error) {
             if (error == null) {
-                showTip("播放完成 ");
             } else if (error != null) {
                 showTip(error.getPlainDescription(true));
             }

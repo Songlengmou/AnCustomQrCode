@@ -42,6 +42,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.AnCustomQrCode">
 
+        <activity android:name=".act.QrCodeMangerActivity" />
         <activity android:name=".act.SpeechSoundActivity" />
         <activity android:name=".act.CaptureActivity" />
         <activity android:name=".act.MainActivity">

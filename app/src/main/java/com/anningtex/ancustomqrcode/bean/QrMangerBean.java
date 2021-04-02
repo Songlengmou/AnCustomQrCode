@@ -20,13 +20,16 @@ public class QrMangerBean implements Parcelable {
     @ColumnInfo(name = "ID")
     private int id;
     /**
-     * 手机工位号、识别到的保存的图片路径、日期
+     * 手机工位号、识别到的保存的图片路径、条码、日期
      */
     @ColumnInfo(name = "PHONE_NUM")
     private String phoneNum;
 
     @ColumnInfo(name = "QR_CODE_PIC_PATH")
     private String qrCodePicPath;
+
+    @ColumnInfo(name = "QR_CODE")
+    private String qrCode;
 
     @ColumnInfo(name = "DATE")
     private Date date;
@@ -36,9 +39,10 @@ public class QrMangerBean implements Parcelable {
     }
 
     @Ignore
-    public QrMangerBean(String phoneNum, String qrCodePicPath, Date date) {
+    public QrMangerBean(String phoneNum, String qrCodePicPath, String qrCode, Date date) {
         this.phoneNum = phoneNum;
         this.qrCodePicPath = qrCodePicPath;
+        this.qrCode = qrCode;
         this.date = date;
     }
 
@@ -64,6 +68,14 @@ public class QrMangerBean implements Parcelable {
 
     public void setQrCodePicPath(String qrCodePicPath) {
         this.qrCodePicPath = qrCodePicPath;
+    }
+
+    public String getQrCode() {
+        return qrCode;
+    }
+
+    public void setQrCode(String qrCode) {
+        this.qrCode = qrCode;
     }
 
     public Date getDate() {
@@ -106,4 +118,15 @@ public class QrMangerBean implements Parcelable {
             return new QrMangerBean[size];
         }
     };
+
+    @Override
+    public String toString() {
+        return "QrMangerBean{" +
+                "id=" + id +
+                ", phoneNum='" + phoneNum + '\'' +
+                ", qrCodePicPath='" + qrCodePicPath + '\'' +
+                ", qrCode='" + qrCode + '\'' +
+                ", date=" + date +
+                '}';
+    }
 }
