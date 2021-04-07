@@ -59,4 +59,9 @@ dependencies {
     implementation 'com.github.Songlengmou:BaseRecycleViewAdapterHelper:1.1.0'
     // 讯飞
     implementation files('libs/Msc.jar')
+    //Glide
+    implementation 'com.github.bumptech.glide:glide:3.7.0'
+    //PhotoView
+    implementation 'com.bm.photoview:library:1.4.1'
+    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
 }

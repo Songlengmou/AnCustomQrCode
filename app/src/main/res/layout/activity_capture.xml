@@ -39,21 +39,39 @@
         android:id="@+id/tv_content"
         android:layout_width="match_parent"
         android:layout_height="0dp"
+        android:layout_margin="5dp"
         android:layout_weight="1"
         android:background="@color/white"
         android:text="扫描结果:"
         android:textColor="@color/purple_700"
-        android:textSize="20sp" />
+        android:textSize="15sp" />
 
-    <ImageButton
-        android:id="@+id/btn_flash"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:layout_gravity="bottom|center_horizontal"
-        android:layout_marginBottom="30dp"
-        android:background="?attr/selectableItemBackground"
-        android:padding="6dp"
-        android:scaleType="centerInside"
-        android:src="@mipmap/flash_off"
-        android:visibility="gone" />
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="0.2"
+        android:background="@color/viewfinder_mask">
+
+        <ImageButton
+            android:id="@+id/btn_flash"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginLeft="5dp"
+            android:background="?attr/selectableItemBackground"
+            android:padding="6dp"
+            android:scaleType="centerInside"
+            android:src="@mipmap/flash_off" />
+
+        <Button
+            android:id="@+id/btn_look"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_alignParentRight="true"
+            android:background="@drawable/bg_edit_text_selector"
+            android:gravity="center"
+            android:text="Click Look SQL Data"
+            android:textAllCaps="false"
+            android:textSize="14sp" />
+
+    </RelativeLayout>
 </LinearLayout>

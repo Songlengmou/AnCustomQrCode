@@ -4,13 +4,16 @@ import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.res.AssetFileDescriptor;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Vibrator;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -49,6 +52,7 @@ import com.iflytek.cloud.SpeechError;
 import com.iflytek.cloud.SpeechSynthesizer;
 import com.iflytek.cloud.SynthesizerListener;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -59,15 +63,16 @@ import java.util.Vector;
 /**
  * @author Song
  */
-public class CaptureActivity extends AppCompatActivity implements SurfaceHolder.Callback {
+public class CaptureActivity extends AppCompatActivity implements SurfaceHolder.Callback, View.OnClickListener {
     private static final int REQUEST_CODE_SCAN_GALLERY = 100;
     private static final long VIBRATE_DURATION = 200L;
+    private static final String deletePath = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "ATest/";
 
     private CaptureActivityHandler handler;
     private ViewfinderView viewfinderView;
     private ImageButton btnBack;
     private ImageButton btnFlash;
-    private Button btnAlbum;
+    private Button btnAlbum, btnLook;
     private boolean isFlashOn = false;
     private boolean hasSurface;
     private Vector<BarcodeFormat> decodeFormats;
@@ -82,7 +87,7 @@ public class CaptureActivity extends AppCompatActivity implements SurfaceHolder.
     private TextView tvContent;
     private int imgSum = 1;
     private List<String> imgs = new ArrayList<>();
-
+    private String path;
     private QrMangerDao qrMangerDao;
 
     @Override
@@ -97,28 +102,60 @@ public class CaptureActivity extends AppCompatActivity implements SurfaceHolder.
 
     private void initView() {
         viewfinderView = findViewById(R.id.viewfinder_content);
-        btnBack = findViewById(R.id.btn_back);
-        btnBack.setOnClickListener(v -> finish());
-        btnFlash = findViewById(R.id.btn_flash);
-        btnFlash.setOnClickListener(flashListener);
-        btnAlbum = findViewById(R.id.btn_album);
-        btnAlbum.setOnClickListener(albumOnClick);
         tvContent = findViewById(R.id.tv_content);
+        btnBack = findViewById(R.id.btn_back);
+        btnBack.setOnClickListener(this);
+        btnFlash = findViewById(R.id.btn_flash);
+        btnFlash.setOnClickListener(this);
+        btnAlbum = findViewById(R.id.btn_album);
+        btnAlbum.setOnClickListener(this);
+        btnLook = findViewById(R.id.btn_look);
+        btnLook.setOnClickListener(this);
         hasSurface = false;
         inactivityTimer = new InactivityTimer(this);
         qrMangerDao = QrMangerDatabase.getDefault(getApplicationContext()).getQrMangerDao();
-        tvContent.setOnLongClickListener(view -> {
-            startActivity(new Intent(CaptureActivity.this, QrCodeMangerActivity.class));
-            return false;
-        });
     }
 
-    private View.OnClickListener albumOnClick = view -> {
-        //打开手机中的相册
-        Intent innerIntent = new Intent(Intent.ACTION_GET_CONTENT);
-        innerIntent.setType("image/*");
-        startActivityForResult(innerIntent, REQUEST_CODE_SCAN_GALLERY);
-    };
+    @Override
+    public void onClick(View view) {
+        switch (view.getId()) {
+            case R.id.btn_back:
+                finish();
+                break;
+            case R.id.btn_flash:
+                //闪光灯开关按钮
+                try {
+                    boolean isSuccess = CameraManager.get().setFlashLight(!isFlashOn);
+                    if (!isSuccess) {
+                        showTip("暂时无法开启闪光灯");
+                        return;
+                    }
+                    if (isFlashOn) {
+                        // 关闭闪光灯
+                        btnFlash.setImageResource(R.mipmap.flash_off);
+                        isFlashOn = false;
+                    } else {
+                        // 开启闪光灯
+                        btnFlash.setImageResource(R.mipmap.flash_on);
+                        isFlashOn = true;
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                break;
+            case R.id.btn_album:
+                //打开手机中的相册
+                Intent innerIntent = new Intent(Intent.ACTION_GET_CONTENT);
+                innerIntent.setType("image/*");
+                startActivityForResult(innerIntent, REQUEST_CODE_SCAN_GALLERY);
+                break;
+            case R.id.btn_look:
+                startActivity(new Intent(CaptureActivity.this, QrCodeMangerActivity.class));
+                break;
+            default:
+                break;
+        }
+    }
 
     @Override
     protected void onActivityResult(final int requestCode, int resultCode, Intent data) {
@@ -139,21 +176,41 @@ public class CaptureActivity extends AppCompatActivity implements SurfaceHolder.
      */
     private void handleAlbumPic(Intent data) {
         //获取选中图片的路径
-        final Uri uri = data.getData();
+        Uri uri = data.getData();
         mProgress = new ProgressDialog(CaptureActivity.this);
         mProgress.setMessage("正在扫描...");
         mProgress.setCancelable(false);
         mProgress.show();
         runOnUiThread(() -> {
+            //获取图库里图片的路径
+            String[] proJ = {MediaStore.Images.Media.DATA};
+            Cursor cursor = managedQuery(uri, proJ, null, null, null);
+            int columnIndex = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+            cursor.moveToFirst();
+            path = cursor.getString(columnIndex);
+            Log.e("666TAG----", "path: " + path);
+            //返回解析结果
             Result result = scanningImage(uri);
             mProgress.dismiss();
             if (result != null) {
                 Intent resultIntent = new Intent();
+                String resultString = result.getText();
                 Bundle bundle = new Bundle();
-                bundle.putString(Constant.INTENT_EXTRA_KEY_QR_SCAN, result.getText());
+                bundle.putString(Constant.INTENT_EXTRA_KEY_QR_SCAN, resultString);
                 resultIntent.putExtras(bundle);
                 setResult(RESULT_OK, resultIntent);
-                finish();
+                tvContent.setText("扫描结果: " + resultString);
+                if (resultString.equals("000")) {
+                    showTip("已归零");
+                    speekText("已归零");
+                    SavePicUtil.deleteDir(deletePath);
+                } else {
+                    if (path != null) {
+                        QrMangerBean bean = new QrMangerBean("02", path, resultString, new Date());
+                        qrMangerDao.insertQrMangerBean(bean);
+                        showTip("Insert SQL Success");
+                    }
+                }
             } else {
                 showTip("识别失败");
             }
@@ -172,10 +229,10 @@ public class CaptureActivity extends AppCompatActivity implements SurfaceHolder.
         hints.put(DecodeHintType.CHARACTER_SET, "UTF8");
         scanBitmap = BitmapUtil.decodeUri(this, uri, 500, 500);
         RGBLuminanceSource source = new RGBLuminanceSource(scanBitmap);
-        BinaryBitmap bitmap1 = new BinaryBitmap(new HybridBinarizer(source));
+        BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
         QRCodeReader reader = new QRCodeReader();
         try {
-            return reader.decode(bitmap1, hints);
+            return reader.decode(bitmap, hints);
         } catch (NotFoundException e) {
             e.printStackTrace();
         } catch (ChecksumException e) {
@@ -227,24 +284,28 @@ public class CaptureActivity extends AppCompatActivity implements SurfaceHolder.
     /**
      * Handler scan result
      */
-    public void handleDecode(Result result, Bitmap barcode) {
+    public void handleDecode(Result result, Bitmap barcodeBitmap) {
         inactivityTimer.onActivity();
         playBeepSoundAndVibrate();
         String resultString = result.getText();
-        tvContent.setText("扫描结果:" + resultString);
+        tvContent.setText("扫描结果: " + resultString);
         if (handler != null) {
             handler.restartPreviewAndDecode();
         }
+        resultDealWithData(barcodeBitmap, resultString);
+    }
 
+    private void resultDealWithData(Bitmap barcodeBitmap, String resultString) {
         //如果扫描到000，就归零，从头开始
         if (resultString.equals("000")) {
             imgs.clear();
             imgSum = 1;
             showTip("已归零");
             speekText("已归零");
+            SavePicUtil.deleteDir(deletePath);
         } else if (!imgs.contains(resultString)) {
             imgs.add(resultString);
-            SavePicUtil.saveBitmap(this, barcode, resultString + ".png");
+            SavePicUtil.saveBitmap(this, barcodeBitmap, resultString + ".png");
             imgSum++;
             String str = "第" + imgSum + "张";
             showTip(str);
@@ -273,7 +334,6 @@ public class CaptureActivity extends AppCompatActivity implements SurfaceHolder.
 
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-
     }
 
     @Override
@@ -307,7 +367,8 @@ public class CaptureActivity extends AppCompatActivity implements SurfaceHolder.
             setVolumeControlStream(AudioManager.STREAM_MUSIC);
             mediaPlayer = new MediaPlayer();
             mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-            mediaPlayer.setOnCompletionListener(beepListener);
+            //When the beep has finished playing, rewind to queue up another one.
+            mediaPlayer.setOnCompletionListener(mediaPlayer -> mediaPlayer.seekTo(0));
             AssetFileDescriptor file = getResources().openRawResourceFd(R.raw.beep);
             try {
                 mediaPlayer.setDataSource(file.getFileDescriptor(), file.getStartOffset(), file.getLength());
@@ -332,60 +393,15 @@ public class CaptureActivity extends AppCompatActivity implements SurfaceHolder.
     }
 
     /**
-     * When the beep has finished playing, rewind to queue up another one.
-     */
-    private final MediaPlayer.OnCompletionListener beepListener = mediaPlayer -> mediaPlayer.seekTo(0);
-
-    /**
-     * 闪光灯开关按钮
-     */
-    private View.OnClickListener flashListener = new View.OnClickListener() {
-        @Override
-        public void onClick(View view) {
-            try {
-                boolean isSuccess = CameraManager.get().setFlashLight(!isFlashOn);
-                if (!isSuccess) {
-                    showTip("暂时无法开启闪光灯");
-                    return;
-                }
-                if (isFlashOn) {
-                    // 关闭闪光灯
-                    btnFlash.setImageResource(R.mipmap.flash_off);
-                    isFlashOn = false;
-                } else {
-                    // 开启闪光灯
-                    btnFlash.setImageResource(R.mipmap.flash_on);
-                    isFlashOn = true;
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-    };
-
-    /**
      * 语音合成（把文字转声音）
-     *
-     * @param str
      */
-    private void speekText(String str) {
-        //1. 创建 SpeechSynthesizer 对象 , 第二个参数： 本地合成时传 InitListener
+    private void speekText(String msg) {
         SpeechSynthesizer mTts = SpeechSynthesizer.createSynthesizer(this, null);
-        //2.合成参数设置，详见《 MSC Reference Manual》 SpeechSynthesizer 类
-        //设置发音人
         mTts.setParameter(SpeechConstant.VOICE_NAME, "xiaoyan");
-        // 设置语速
         mTts.setParameter(SpeechConstant.SPEED, "10");
-        // 设置音量，范围 0~100
         mTts.setParameter(SpeechConstant.VOLUME, "80");
-        //设置云端
         mTts.setParameter(SpeechConstant.ENGINE_TYPE, SpeechConstant.TYPE_CLOUD);
-        //设置合成音频保存位置（可自定义保存位置），保存在 “./sdcard/iflytek.pcm”
-        //保存在 SD 卡需要在 AndroidManifest.xml 添加写 SD 卡权限
-        //仅支持保存为 pcm 和 wav 格式， 如果不需要保存合成音频，注释该行代码
-//        mTts.setParameter(SpeechConstant.TTS_AUDIO_PATH, "./sdcard/iflytek.pcm");
-        //3.开始合成
-        mTts.startSpeaking(str, new MySynthesizerListener());
+        mTts.startSpeaking(msg, new MySynthesizerListener());
     }
 
     class MySynthesizerListener implements SynthesizerListener {
@@ -404,12 +420,10 @@ public class CaptureActivity extends AppCompatActivity implements SurfaceHolder.
 
         @Override
         public void onBufferProgress(int percent, int beginPos, int endPos, String info) {
-            // 合成进度
         }
 
         @Override
         public void onSpeakProgress(int percent, int beginPos, int endPos) {
-            // 播放进度
         }
 
         @Override
@@ -422,12 +436,6 @@ public class CaptureActivity extends AppCompatActivity implements SurfaceHolder.
 
         @Override
         public void onEvent(int eventType, int arg1, int arg2, Bundle obj) {
-            // 以下代码用于获取与云端的会话 id，当业务出错时将会话 id提供给技术支持人员，可用于查询会话日志，定位出错原因
-            // 若使用本地能力，会话 id为null
-            //if (SpeechEvent.EVENT_SESSION_ID == eventType) {
-            //     String sid = obj.getString(SpeechEvent.KEY_EVENT_SESSION_ID);
-            //     Log.d(TAG, "session id =" + sid);
-            //}
         }
     }
 

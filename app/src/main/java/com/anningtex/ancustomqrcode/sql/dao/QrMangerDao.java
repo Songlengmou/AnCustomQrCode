@@ -29,4 +29,7 @@ public interface QrMangerDao {
 
     @Delete()
     void deleteQrMangerBean(QrMangerBean qrMangerBean);
+
+    @Query("DELETE FROM QrMangerBean")
+    void deleteQrMangerBeanAll();
 }
