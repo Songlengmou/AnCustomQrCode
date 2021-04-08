@@ -68,7 +68,7 @@ import java.util.Vector;
 public class CaptureActivity extends AppCompatActivity implements SurfaceHolder.Callback, View.OnClickListener {
     private static final int REQUEST_CODE_SCAN_GALLERY = 100;
     private static final long VIBRATE_DURATION = 200L;
-    private static final String deletePath = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "ATest/";
+    public static final String deletePath = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "ATest/";
 
     private CaptureActivityHandler handler;
     private ViewfinderView viewfinderView;
@@ -87,7 +87,7 @@ public class CaptureActivity extends AppCompatActivity implements SurfaceHolder.
     private ProgressDialog mProgress;
     private Bitmap scanBitmap;
     private TextView tvContent, tvOrderNo;
-    private int imgSum = 1;
+    private int imgSum = 0;
     private List<String> imgs = new ArrayList<>();
     private String path, orderNo;
     private QrMangerDao qrMangerDao;
@@ -322,7 +322,7 @@ public class CaptureActivity extends AppCompatActivity implements SurfaceHolder.
         //如果扫描到000，就归零，从头开始
         if (resultString.equals("000")) {
             imgs.clear();
-            imgSum = 1;
+            imgSum = 0;
             showTip("已归零");
             speekText("已归零");
             SavePicUtil.deleteDir(deletePath);

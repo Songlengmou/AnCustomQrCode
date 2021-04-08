@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -16,6 +17,7 @@ import com.anningtex.ancustomqrcode.camera.CameraManager;
 import com.anningtex.ancustomqrcode.sql.QrMangerDatabase;
 import com.anningtex.ancustomqrcode.sql.dao.OrderNoAllDataDao;
 import com.anningtex.ancustomqrcode.utils.Constant;
+import com.anningtex.ancustomqrcode.utils.SavePicUtil;
 import com.google.gson.GsonBuilder;
 
 import java.io.IOException;
@@ -42,6 +44,10 @@ public class MainActivity extends AppCompatActivity {
         CameraManager.init(getApplication());
         findViewById(R.id.input_scan).setOnClickListener(view -> requestPermission());
         findViewById(R.id.input_speech).setOnClickListener(view -> startActivity(new Intent(MainActivity.this, SpeechSoundActivity.class)));
+        findViewById(R.id.input_delete).setOnClickListener(view -> {
+            SavePicUtil.deleteDir(CaptureActivity.deletePath);
+            Toast.makeText(this, "Delete success", Toast.LENGTH_SHORT).show();
+        });
         orderNoAllDataDao = QrMangerDatabase.getDefault(getApplicationContext()).getOrderNoAllDataDao();
         orderNoMangerJsonData();
     }
