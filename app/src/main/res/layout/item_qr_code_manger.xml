@@ -6,8 +6,8 @@
 
     <ImageView
         android:id="@+id/iv_pic"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
         android:layout_gravity="center"
         android:layout_marginTop="5dp"
         android:src="@mipmap/ic_launcher" />
@@ -35,23 +35,51 @@
             android:textSize="10sp" />
     </RelativeLayout>
 
-    <TextView
-        android:id="@+id/tv_qrCode"
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="5dp"
-        android:text="名称"
-        android:textColor="@color/black"
-        android:textSize="14sp" />
+        android:layout_margin="5dp">
 
-    <TextView
-        android:id="@+id/tv_qrCodePicPath"
+        <TextView
+            android:id="@+id/tv_orderNo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="orderNo"
+            android:textColor="@color/black"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/tv_qrCode"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:text="名称"
+            android:textColor="@color/black"
+            android:textSize="13sp" />
+
+    </RelativeLayout>
+
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="5dp"
-        android:text="路径"
-        android:textColor="@color/black"
-        android:textSize="8sp" />
+        android:layout_margin="5dp">
+
+        <TextView
+            android:id="@+id/tv_qrCodePicPath"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="路径"
+            android:textColor="@color/black"
+            android:textSize="8sp" />
+
+        <TextView
+            android:id="@+id/tv_olid"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:textColor="@color/black"
+            android:textSize="8sp" />
+    </RelativeLayout>
 
     <View
         android:layout_width="match_parent"

@@ -10,8 +10,18 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import com.anningtex.ancustomqrcode.R;
+import com.anningtex.ancustomqrcode.bean.OrderNoAllDataBean;
+import com.anningtex.ancustomqrcode.bean.OrderNoMangerBean;
 import com.anningtex.ancustomqrcode.camera.CameraManager;
+import com.anningtex.ancustomqrcode.sql.QrMangerDatabase;
+import com.anningtex.ancustomqrcode.sql.dao.OrderNoAllDataDao;
 import com.anningtex.ancustomqrcode.utils.Constant;
+import com.google.gson.GsonBuilder;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.List;
 
 /**
  * @author Song
@@ -19,6 +29,7 @@ import com.anningtex.ancustomqrcode.utils.Constant;
  */
 public class MainActivity extends AppCompatActivity {
     private final long EXPIRED = 3600000 * 24 * 2;
+    private OrderNoAllDataDao orderNoAllDataDao;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,6 +42,27 @@ public class MainActivity extends AppCompatActivity {
         CameraManager.init(getApplication());
         findViewById(R.id.input_scan).setOnClickListener(view -> requestPermission());
         findViewById(R.id.input_speech).setOnClickListener(view -> startActivity(new Intent(MainActivity.this, SpeechSoundActivity.class)));
+        orderNoAllDataDao = QrMangerDatabase.getDefault(getApplicationContext()).getOrderNoAllDataDao();
+        orderNoMangerJsonData();
+    }
+
+    private void orderNoMangerJsonData() {
+        InputStream inputStream;
+        OrderNoMangerBean orderNoMangerBean;
+        try {
+            inputStream = getApplicationContext().getAssets().open("orderNoManger.json");
+            orderNoMangerBean = new GsonBuilder().create().fromJson(new InputStreamReader(inputStream), OrderNoMangerBean.class);
+            OrderNoMangerBean.DataBean data = orderNoMangerBean.getData();
+            List<OrderNoMangerBean.DataBean.ListBean> list = data.getList();
+            for (OrderNoMangerBean.DataBean.ListBean listBean : list) {
+                OrderNoAllDataBean orderNoAllDataBean = new OrderNoAllDataBean();
+                orderNoAllDataBean.setOlid(listBean.getId());
+                orderNoAllDataBean.setOrderNo(listBean.getOrder_no());
+                orderNoAllDataDao.addOrderNoAllData(orderNoAllDataBean);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

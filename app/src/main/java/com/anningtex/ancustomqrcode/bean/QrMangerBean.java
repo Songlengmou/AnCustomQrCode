@@ -34,16 +34,24 @@ public class QrMangerBean implements Parcelable {
     @ColumnInfo(name = "DATE")
     private Date date;
 
+    @ColumnInfo(name = "OLID")
+    private String olid;
+
+    @ColumnInfo(name = "ORDER_NO")
+    private String orderNo;
+
     public QrMangerBean() {
 
     }
 
     @Ignore
-    public QrMangerBean(String phoneNum, String qrCodePicPath, String qrCode, Date date) {
+    public QrMangerBean(String phoneNum, String qrCodePicPath, String qrCode, Date date, String olid, String orderNo) {
         this.phoneNum = phoneNum;
         this.qrCodePicPath = qrCodePicPath;
         this.qrCode = qrCode;
         this.date = date;
+        this.olid = olid;
+        this.orderNo = orderNo;
     }
 
     public int getId() {
@@ -84,6 +92,22 @@ public class QrMangerBean implements Parcelable {
 
     public void setDate(Date date) {
         this.date = date;
+    }
+
+    public String getOlid() {
+        return olid;
+    }
+
+    public void setOlid(String olid) {
+        this.olid = olid;
+    }
+
+    public String getOrderNo() {
+        return orderNo;
+    }
+
+    public void setOrderNo(String orderNo) {
+        this.orderNo = orderNo;
     }
 
     @Override
@@ -127,6 +151,8 @@ public class QrMangerBean implements Parcelable {
                 ", qrCodePicPath='" + qrCodePicPath + '\'' +
                 ", qrCode='" + qrCode + '\'' +
                 ", date=" + date +
+                ", olid='" + olid + '\'' +
+                ", orderNo='" + orderNo + '\'' +
                 '}';
     }
 }

@@ -16,7 +16,7 @@ import com.bumptech.glide.Glide;
  */
 public class CropActivity extends AppCompatActivity {
     private PhotoView mPhotoView;
-    private String url, code;
+    private String url, code, orderNo;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,10 +26,11 @@ public class CropActivity extends AppCompatActivity {
     }
 
     private void initView() {
+        orderNo = getIntent().getStringExtra("orderNo");
         code = getIntent().getStringExtra("code");
         url = getIntent().getStringExtra("urlPath");
-        Log.e("666TAG", "url: " + url);
-        setTitle(code);
+        Log.e("666", "CropUrl: " + url);
+        setTitle(orderNo + " ( " + code + " )");
         mPhotoView = findViewById(R.id.photoView);
         Glide.with(this).load(url).into(mPhotoView);
         mPhotoView.enable();

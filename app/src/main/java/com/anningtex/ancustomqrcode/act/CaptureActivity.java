@@ -27,12 +27,14 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.anningtex.ancustomqrcode.MyApp;
 import com.anningtex.ancustomqrcode.R;
+import com.anningtex.ancustomqrcode.bean.OrderNoAllDataBean;
 import com.anningtex.ancustomqrcode.bean.QrMangerBean;
 import com.anningtex.ancustomqrcode.camera.CameraManager;
 import com.anningtex.ancustomqrcode.decoding.CaptureActivityHandler;
 import com.anningtex.ancustomqrcode.decoding.InactivityTimer;
 import com.anningtex.ancustomqrcode.decoding.RGBLuminanceSource;
 import com.anningtex.ancustomqrcode.sql.QrMangerDatabase;
+import com.anningtex.ancustomqrcode.sql.dao.OrderNoAllDataDao;
 import com.anningtex.ancustomqrcode.sql.dao.QrMangerDao;
 import com.anningtex.ancustomqrcode.utils.BitmapUtil;
 import com.anningtex.ancustomqrcode.utils.Constant;
@@ -84,11 +86,14 @@ public class CaptureActivity extends AppCompatActivity implements SurfaceHolder.
     private boolean vibrate;
     private ProgressDialog mProgress;
     private Bitmap scanBitmap;
-    private TextView tvContent;
+    private TextView tvContent, tvOrderNo;
     private int imgSum = 1;
     private List<String> imgs = new ArrayList<>();
-    private String path;
+    private String path, orderNo;
     private QrMangerDao qrMangerDao;
+    private QrMangerBean bean;
+    private OrderNoAllDataDao orderNoAllDataDao;
+    private OrderNoAllDataBean orderNoAllDataBean;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -103,6 +108,7 @@ public class CaptureActivity extends AppCompatActivity implements SurfaceHolder.
     private void initView() {
         viewfinderView = findViewById(R.id.viewfinder_content);
         tvContent = findViewById(R.id.tv_content);
+        tvOrderNo = findViewById(R.id.tv_orderNo);
         btnBack = findViewById(R.id.btn_back);
         btnBack.setOnClickListener(this);
         btnFlash = findViewById(R.id.btn_flash);
@@ -114,6 +120,7 @@ public class CaptureActivity extends AppCompatActivity implements SurfaceHolder.
         hasSurface = false;
         inactivityTimer = new InactivityTimer(this);
         qrMangerDao = QrMangerDatabase.getDefault(getApplicationContext()).getQrMangerDao();
+        orderNoAllDataDao = QrMangerDatabase.getDefault(getApplicationContext()).getOrderNoAllDataDao();
     }
 
     @Override
@@ -188,7 +195,7 @@ public class CaptureActivity extends AppCompatActivity implements SurfaceHolder.
             int columnIndex = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
             cursor.moveToFirst();
             path = cursor.getString(columnIndex);
-            Log.e("666TAG----", "path: " + path);
+            Log.e("666", "path: " + path);
             //返回解析结果
             Result result = scanningImage(uri);
             mProgress.dismiss();
@@ -206,9 +213,25 @@ public class CaptureActivity extends AppCompatActivity implements SurfaceHolder.
                     SavePicUtil.deleteDir(deletePath);
                 } else {
                     if (path != null) {
-                        QrMangerBean bean = new QrMangerBean("02", path, resultString, new Date());
-                        qrMangerDao.insertQrMangerBean(bean);
-                        showTip("Insert SQL Success");
+                        if ("01".equals(resultString.substring(0, 2)) && resultString.length() == 12) {
+                            String subString = resultString.substring(2, 8).substring(2, 6);
+                            Log.e("666", "subString " + subString);
+                            orderNoAllDataBean = orderNoAllDataDao.queryFromOlidToOrderNo(Integer.parseInt(subString));
+                            if (orderNoAllDataBean != null) {
+                                orderNo = orderNoAllDataBean.getOrderNo();
+                                Log.e("666", "orderNo: " + orderNo);
+                                bean = new QrMangerBean("02", path, resultString, new Date(), subString, orderNo);
+                            } else {
+                                orderNo = "";
+                                bean = new QrMangerBean("02", path, resultString, new Date(), subString, orderNo);
+                            }
+                            qrMangerDao.insertQrMangerBean(bean);
+                            showTip("Insert SQL Success");
+                            tvOrderNo.setText("OrderNo: " + orderNo);
+                        } else {
+                            showTip("格式错误,请重试");
+                            speekText("格式错误,请重试");
+                        }
                     }
                 }
             } else {
@@ -310,13 +333,27 @@ public class CaptureActivity extends AppCompatActivity implements SurfaceHolder.
             String str = "第" + imgSum + "张";
             showTip(str);
             speekText(str);
-            Log.e("666///", "SAVE_SUCCESS_PATH: " + MyApp.SAVE_SUCCESS_PATH);
+            Log.e("666", "SAVE_SUCCESS_PATH: " + MyApp.SAVE_SUCCESS_PATH);
 
-            //TODO 加入数据库并且上传    "01"代表工位的手机编号(每个工位)
-            QrMangerBean qrMangerBean = new QrMangerBean("01", MyApp.SAVE_SUCCESS_PATH, resultString, new Date());
-            qrMangerDao.insertQrMangerBean(qrMangerBean);
+            if ("01".equals(resultString.substring(0, 2)) && resultString.length() == 12) {
+                String subString = resultString.substring(2, 8).substring(2, 6);
+                Log.e("666", "subString " + subString);
+                orderNoAllDataBean = orderNoAllDataDao.queryFromOlidToOrderNo(Integer.parseInt(subString));
+                if (orderNoAllDataBean != null) {
+                    orderNo = orderNoAllDataBean.getOrderNo();
+                    Log.e("666", "orderNo: " + orderNo);
+                    bean = new QrMangerBean("01", MyApp.SAVE_SUCCESS_PATH, resultString, new Date(), subString, orderNo);
+                } else {
+                    orderNo = "";
+                    bean = new QrMangerBean("01", MyApp.SAVE_SUCCESS_PATH, resultString, new Date(), subString, orderNo);
+                }
+                qrMangerDao.insertQrMangerBean(bean);
+                tvOrderNo.setText("OrderNo: " + orderNo);
+            } else {
+                showTip("格式错误,请重试");
+                speekText("格式错误,请重试");
+            }
         }
-        Log.e("666****", "qrCode: " + resultString + ".png");
     }
 
     private void initCamera(SurfaceHolder surfaceHolder) {

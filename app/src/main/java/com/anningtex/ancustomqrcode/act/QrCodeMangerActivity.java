@@ -3,6 +3,7 @@ package com.anningtex.ancustomqrcode.act;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -16,6 +17,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.anningtex.ancustomqrcode.R;
 import com.anningtex.ancustomqrcode.bean.QrMangerBean;
+import com.anningtex.ancustomqrcode.dialog.QrMangerEditDialog;
 import com.anningtex.ancustomqrcode.sql.QrMangerDatabase;
 import com.anningtex.ancustomqrcode.sql.dao.QrMangerDao;
 import com.anningtex.ancustomqrcode.utils.DateUtils;
@@ -66,14 +68,21 @@ public class QrCodeMangerActivity extends AppCompatActivity implements View.OnCl
             if (qrMangerBeanAll != null && qrMangerBeanAll.size() > 0) {
                 mTvNull.setVisibility(View.GONE);
                 mRvQrCode.setVisibility(View.VISIBLE);
-                Log.e("666TAG", "queryPhoneSize: " + qrMangerBeanAll.size());
+                Log.e("666", "queryPhoneSize: " + qrMangerBeanAll.size());
                 BaseRecycleAdapter recycleAdapter = new BaseRecycleAdapter(R.layout.item_qr_code_manger, qrMangerBeanAll);
                 recycleAdapter.setOnDataToViewListener((helper, item, position) -> {
                     QrMangerBean qrMangerBean = (QrMangerBean) item;
                     helper.setText(R.id.tv_phone_num, "工位号: " + qrMangerBean.getPhoneNum());
                     helper.setText(R.id.tv_date, DateUtils.getDate(qrMangerBean.getDate()));
+                    String orderNo = qrMangerBean.getOrderNo();
+                    if (TextUtils.isEmpty(orderNo)) {
+                        helper.setText(R.id.tv_orderNo, "暂无");
+                    } else {
+                        helper.setText(R.id.tv_orderNo, orderNo);
+                    }
                     helper.setText(R.id.tv_qrCode, "Code: " + qrMangerBean.getQrCode());
                     helper.setText(R.id.tv_qrCodePicPath, qrMangerBean.getQrCodePicPath());
+                    helper.setText(R.id.tv_olid, qrMangerBean.getOlid());
                     ImageView ivPic = helper.getView(R.id.iv_pic);
                     Glide.with(helper.itemView.getContext())
                             .load(qrMangerBean.getQrCodePicPath())
@@ -82,25 +91,20 @@ public class QrCodeMangerActivity extends AppCompatActivity implements View.OnCl
                             .into(ivPic);
                     ivPic.setOnClickListener(view -> {
                         Intent intent = new Intent(this, CropActivity.class);
+                        intent.putExtra("orderNo", orderNo != null ? orderNo : "");
                         intent.putExtra("code", qrMangerBean.getQrCode());
                         intent.putExtra("urlPath", qrMangerBean.getQrCodePicPath());
                         startActivity(intent);
                     });
                 });
                 mRvQrCode.setAdapter(recycleAdapter);
-                recycleAdapter.setOnItemLongClickListener((adapter, view, position) -> {
-                    List<QrMangerBean> data = adapter.getData();
-                    new AlertDialog.Builder(QrCodeMangerActivity.this)
-                            .setTitle("确认")
-                            .setMessage(data.get(position).getQrCode() + " 确认删除?")
-                            .setNegativeButton("取消", null)
-                            .setPositiveButton("确认", (dialog, which) -> {
-                                qrMangerDao.deleteQrMangerBean(data.get(position));
-                                adapter.remove(data.get(position));
-                                adapter.notifyDataSetChanged();
-                            })
-                            .create().show();
-                    return false;
+                recycleAdapter.setOnItemClickListener((adapter, view, position) -> {
+                    QrMangerBean qrMangerBean = (QrMangerBean) adapter.getData().get(position);
+                    Bundle mBundle = new Bundle();
+                    mBundle.putParcelable("QrMangerBean", qrMangerBean);
+                    QrMangerEditDialog dialog = new QrMangerEditDialog();
+                    dialog.show(this, mBundle, "edit");
+                    dialog.setOnRefreshDataListener(() -> queryQrManger());
                 });
             } else {
                 mTvNull.setVisibility(View.VISIBLE);
