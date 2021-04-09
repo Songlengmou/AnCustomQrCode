@@ -94,6 +94,7 @@ public class CaptureActivity extends AppCompatActivity implements SurfaceHolder.
     private QrMangerBean bean;
     private OrderNoAllDataDao orderNoAllDataDao;
     private OrderNoAllDataBean orderNoAllDataBean;
+    private boolean isShow = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -211,6 +212,8 @@ public class CaptureActivity extends AppCompatActivity implements SurfaceHolder.
                     showTip("已归零");
                     speekText("已归零");
                     SavePicUtil.deleteDir(deletePath);
+                    tvOrderNo.setText("");
+                    isShow = false;
                 } else {
                     if (path != null) {
                         if ("01".equals(resultString.substring(0, 2)) && resultString.length() == 12) {
@@ -232,6 +235,7 @@ public class CaptureActivity extends AppCompatActivity implements SurfaceHolder.
                             showTip("格式错误,请重试");
                             speekText("格式错误,请重试");
                         }
+                        isShow = true;
                     }
                 }
             } else {
@@ -326,6 +330,8 @@ public class CaptureActivity extends AppCompatActivity implements SurfaceHolder.
             showTip("已归零");
             speekText("已归零");
             SavePicUtil.deleteDir(deletePath);
+            tvOrderNo.setText("");
+            isShow = false;
         } else if (!imgs.contains(resultString)) {
             imgs.add(resultString);
             SavePicUtil.saveBitmap(this, barcodeBitmap, resultString + ".png");
@@ -353,6 +359,7 @@ public class CaptureActivity extends AppCompatActivity implements SurfaceHolder.
                 showTip("格式错误,请重试");
                 speekText("格式错误,请重试");
             }
+            isShow = true;
         }
     }
 
@@ -477,6 +484,8 @@ public class CaptureActivity extends AppCompatActivity implements SurfaceHolder.
     }
 
     private void showTip(String data) {
-        Toast.makeText(this, data, Toast.LENGTH_SHORT).show();
+        if (isShow) {
+            Toast.makeText(this, data, Toast.LENGTH_SHORT).show();
+        }
     }
 }
