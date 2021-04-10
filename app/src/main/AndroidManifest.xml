@@ -45,8 +45,7 @@
         <activity android:name=".act.QrCodeMangerActivity" />
         <activity android:name=".act.SpeechSoundActivity" />
         <activity android:name=".act.CaptureActivity" />
-        <activity android:name=".act.MainActivity" />
-        <activity android:name=".act.LoginActivity">
+        <activity android:name=".act.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
