@@ -25,7 +25,7 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.anningtex.ancustomqrcode.MyApp;
+import com.anningtex.ancustomqrcode.manger.MainApplication;
 import com.anningtex.ancustomqrcode.R;
 import com.anningtex.ancustomqrcode.bean.OrderNoAllDataBean;
 import com.anningtex.ancustomqrcode.bean.QrMangerBean;
@@ -339,7 +339,7 @@ public class CaptureActivity extends AppCompatActivity implements SurfaceHolder.
             String str = "第" + imgSum + "张";
             showTip(str);
             speekText(str);
-            Log.e("666", "SAVE_SUCCESS_PATH: " + MyApp.SAVE_SUCCESS_PATH);
+            Log.e("666", "SAVE_SUCCESS_PATH: " + MainApplication.SAVE_SUCCESS_PATH);
 
             if ("01".equals(resultString.substring(0, 2)) && resultString.length() == 12) {
                 String subString = resultString.substring(2, 8).substring(2, 6);
@@ -348,10 +348,10 @@ public class CaptureActivity extends AppCompatActivity implements SurfaceHolder.
                 if (orderNoAllDataBean != null) {
                     orderNo = orderNoAllDataBean.getOrderNo();
                     Log.e("666", "orderNo: " + orderNo);
-                    bean = new QrMangerBean("01", MyApp.SAVE_SUCCESS_PATH, resultString, new Date(), subString, orderNo);
+                    bean = new QrMangerBean("01", MainApplication.SAVE_SUCCESS_PATH, resultString, new Date(), subString, orderNo);
                 } else {
                     orderNo = "";
-                    bean = new QrMangerBean("01", MyApp.SAVE_SUCCESS_PATH, resultString, new Date(), subString, orderNo);
+                    bean = new QrMangerBean("01", MainApplication.SAVE_SUCCESS_PATH, resultString, new Date(), subString, orderNo);
                 }
                 qrMangerDao.insertQrMangerBean(bean);
                 tvOrderNo.setText("OrderNo: " + orderNo);

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="TitleEditText">
+        <attr name="hintInfo" format="string" />
+        <attr name="label" format="string" />
+        <attr name="imageRes" format="reference" />
+        <attr name="rightTitle" format="string" />
+        <attr name="leftPadding" format="integer" />
+        <attr name="inputType" format="string" />
+        <attr name="enabled" format="boolean" />
+    </declare-styleable>
+</resources>

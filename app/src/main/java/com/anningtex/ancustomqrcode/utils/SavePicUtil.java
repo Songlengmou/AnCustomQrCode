@@ -8,7 +8,7 @@ import android.os.Environment;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.anningtex.ancustomqrcode.MyApp;
+import com.anningtex.ancustomqrcode.manger.MainApplication;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -85,7 +85,7 @@ public class SavePicUtil {
 //            Uri uri = Uri.fromFile(file);
 //            context.sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, uri));
             Log.e("999", "保存成功：path=" + path);
-            MyApp.SAVE_SUCCESS_PATH = path;
+            MainApplication.SAVE_SUCCESS_PATH = path;
             return file.getAbsolutePath();
         } catch (FileNotFoundException e) {
             e.printStackTrace();

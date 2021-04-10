@@ -1,4 +1,4 @@
-package com.anningtex.ancustomqrcode;
+package com.anningtex.ancustomqrcode.manger;
 
 import android.annotation.SuppressLint;
 import android.app.Application;
@@ -10,7 +10,7 @@ import com.iflytek.cloud.SpeechUtility;
 /**
  * @Author Song
  */
-public class MyApp extends Application {
+public class MainApplication extends Application {
     @SuppressLint("StaticFieldLeak")
     private static Context context;
     public static String SAVE_SUCCESS_PATH;
